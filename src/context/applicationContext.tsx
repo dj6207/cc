@@ -6,25 +6,25 @@ type ApplicationProviderProps = {
 }
 
 export type ApplicationContextType = {
-    application: CommandCenterApplicationEnum | null;
-    setApplication: (application: CommandCenterApplicationEnum) => void;
+    currentApplication: CommandCenterApplicationEnum | null;
+    setCurrentApplication: (application: CommandCenterApplicationEnum) => void;
 }
 
-const ApplicationContext = createContext<ApplicationContextType>({application:null, setApplication:() => {}});
+const ApplicationContext = createContext<ApplicationContextType>({currentApplication:null, setCurrentApplication:() => {}});
 
 export const useApplication = () => {
     return useContext(ApplicationContext);
 }
 
 export const ApplicationProvider:React.FC<ApplicationProviderProps> = ({children}) => {
-    const [currentApplication, setCurrentApplicatoin] = useState<CommandCenterApplicationEnum | null>(null);
+    const [currentApplication, setCurrentApplicatoin] = useState<CommandCenterApplicationEnum | null>(CommandCenterApplicationEnum.WatchDog);
 
     const handleSetCurrentApplication = (application:CommandCenterApplicationEnum) => {
         setCurrentApplicatoin(application);
     }
 
     return (
-        <ApplicationContext.Provider value={{application:currentApplication, setApplication:handleSetCurrentApplication}}>
+        <ApplicationContext.Provider value={{currentApplication:currentApplication, setCurrentApplication:handleSetCurrentApplication}}>
             {children}
         </ApplicationContext.Provider>
     )

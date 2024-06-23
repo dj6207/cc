@@ -1,3 +1,5 @@
+import { UsageLogData } from "../types";
+
 export const formatDate = (date:Date):string => {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -8,6 +10,29 @@ export const formatDate = (date:Date):string => {
 export const randomHexColors = (amount:number):string[] => {
     return Array.from({length: amount}, () => `#${Math.floor(Math.random() * 0xffffff).toString(16).padEnd(6, "0")}`);
 }
+
+export const hexColors: string[] = [
+    "#FF5733", // Fiery Red
+    "#33FF57", // Lime Green
+    "#3357FF", // Electric Blue
+    "#FF33A6", // Hot Pink
+    "#57FF33", // Neon Green
+    "#FFAF33", // Bright Orange
+    "#5733FF", // Purple
+    "#FF3357", // Deep Pink
+    "#33FFF6", // Aqua Blue
+    "#FF5733", // Coral
+    "#57FFAF", // Sea Green
+    "#FF33FF", // Magenta
+    "#33FFAF", // Mint Green
+    "#FFA533", // Tangerine
+    "#33AFFF", // Sky Blue
+    "#AF33FF", // Lavender
+    "#FF3333", // Tomato
+    "#FFFF33", // Yellow
+    "#33FFFF", // Cyan
+    "#3333FF"  // Navy Blue
+  ];
 
 export const truncateString = (string: string | undefined, length: number = 10): string => {
     if (string) {
@@ -41,4 +66,9 @@ export const formatTime = (seconds: number): string => {
     } else {
         return `${seconds}s`;
     }
+}
+
+export const filterUsageLogData = (usageLogDataList:UsageLogData[], amount:number):UsageLogData[] => {
+    const filteredList = [...usageLogDataList].sort((a, b) => b.timeSpent - a.timeSpent);
+    return filteredList.slice(0, amount);
 }

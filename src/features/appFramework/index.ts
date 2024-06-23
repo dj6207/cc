@@ -1,2 +1,2 @@
-export { AppBar } from "./appBar";
+export { AppSelectBar as AppBar } from "./appSelectBar";
 export { AppWindow } from "./appWindow";
