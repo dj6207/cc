@@ -1,27 +1,35 @@
 import { Box, List, ListItemButton, ListItemText } from "@mui/material"
 import React from "react"
 import { UsageLogData } from "../../types";
-import { filterUsageLogData, formatDate, formatTime } from "../../utils";
-import { useUpdateUsageLogData } from "../../hooks";
+import { formatTime } from "../../utils";
+import { WatchDogContextType, useWatchDog } from "../../context/watchDogContext";
 
 interface UsageListProps {
     colors:string[];
-    filterAmount:number;
+    usageLogDataList:UsageLogData[];
 }
 
 export const UsageList: React.FC<UsageListProps> = (props) => {
-    const today:Date = new Date();
-    const usageLogDataList:UsageLogData[] = filterUsageLogData(useUpdateUsageLogData(formatDate(today)), props.filterAmount);
+    const {setCurrentUsageData:handleSetCurrentUsageData, setOpenUsageDataDialog:handleSetOpenUsageDataDialog}:WatchDogContextType = useWatchDog();
     return (
-        <Box sx={{ pt: 3, flex: 1 }}>
-            <List>
-                {usageLogDataList.map((logData, index) => (
+        <Box>
+            <List
+                sx={{
+                    maxHeight: '100vh',
+                    overflow: 'auto',
+                }}
+            >
+                {props.usageLogDataList.map((logData, index) => (
                     <ListItemButton
                         key={logData.logId}
                         sx={{ 
                             bgcolor: props.colors[index],
                             borderRadius: 3,
                             margin: 1,
+                        }}
+                        onClick={() => {
+                            handleSetCurrentUsageData(props.usageLogDataList[index]);
+                            handleSetOpenUsageDataDialog(true);        
                         }}
                     >
                         <ListItemText

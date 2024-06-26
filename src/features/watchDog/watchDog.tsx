@@ -1,15 +1,32 @@
 import React from "react";
-import { UsageGraph } from ".";
-import { hexColors, formatTime } from "../../utils";
+import { CalendarButton, UsageGraph } from ".";
+import { hexColors, formatTime, filterUsageLogData, formatDate } from "../../utils";
 import { Box, Dialog, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
 import { UsageList } from "./usageList";
-import { UsageDataContextType, useUsageData } from "../../context/usageDataContext";
+import { WatchDogContextType, useWatchDog } from "../../context/watchDogContext";
+import { UsageLogData } from "../../types";
+import { useUpdateUsageLogData } from "../../hooks";
 
 export const WatchDog: React.FC = () => {
-    const {currentUsageData:currentUsageData, openUsageDataDialog:openUsageDataDialog, setOpenUsageDataDialog:handleSetOpenUsageDataDialog}:UsageDataContextType = useUsageData()
+    const {
+        currentUsageData:currentUsageData, 
+        currentDate:currentDate,
+        openUsageDataDialog:openUsageDataDialog, 
+        setOpenUsageDataDialog:handleSetOpenUsageDataDialog
+    }:WatchDogContextType = useWatchDog()
+    const today:Date = new Date();
+    const filterAmount:number = 20;
+    const usageLogDataList:UsageLogData[] = filterUsageLogData(
+        useUpdateUsageLogData(
+            formatDate(currentDate?.toDate() ?? today)
+        ), 
+        filterAmount
+    );
+    
     const handleCloseUsageDialog = () => {
         handleSetOpenUsageDataDialog(false);
     }
+
     return (
         <Box
             sx={{
@@ -20,11 +37,16 @@ export const WatchDog: React.FC = () => {
                 alignItems: 'flex-start', 
             }}
         >
-            <UsageGraph colors={hexColors} filterAmount={10}/>
-            <UsageList colors={hexColors} filterAmount={10}/>
+            <UsageGraph colors={hexColors} usageLogDataList={usageLogDataList}/>
+            <Box sx={{ pt: 6, flex: 1 }}>
+                <CalendarButton date={currentDate}/>
+                <UsageList colors={hexColors} usageLogDataList={usageLogDataList}/>
+            </Box>
             <Dialog
                 open={openUsageDataDialog}
                 onClose={handleCloseUsageDialog}
+                maxWidth='xs'
+                fullWidth={true}
             >
                 <DialogTitle>
                     {currentUsageData?.windowName}

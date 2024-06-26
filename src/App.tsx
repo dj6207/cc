@@ -1,5 +1,5 @@
 import { ApplicationProvider } from "./context/applicationContext"
-import { UsageDataProvider } from "./context/usageDataContext"
+import { WatchDogProvider } from "./context/watchDogContext"
 import { AppBar, AppWindow } from "./features"
 import theme from "./theme"
 import { CommandCenterApplication } from "./types"
@@ -13,10 +13,8 @@ function App() {
     <ThemeProvider theme={theme}>
       <Box>
         <ApplicationProvider>
-          <UsageDataProvider>
             <AppBar appItems={applicationList}/>
             <AppWindow/>
-          </UsageDataProvider>
         </ApplicationProvider>  
       </Box>
     </ThemeProvider>

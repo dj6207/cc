@@ -1,25 +1,22 @@
 import React from "react";
 import { UsageLogData } from "../../types";
-import { useUpdateUsageLogData } from "../../hooks";
-import { filterUsageLogData, formatDate, formatTime } from "../../utils";
+import { formatTime } from "../../utils";
 import { Box } from "@mui/material";
 import { PieChart } from '@mui/x-charts/PieChart';
-import { UsageDataContextType, useUsageData } from "../../context/usageDataContext";
+import { WatchDogContextType, useWatchDog } from "../../context/watchDogContext";
 
 interface UsageGraphProps {
     colors:string[];
-    filterAmount:number;
+    usageLogDataList:UsageLogData[];
 }
 
 export const UsageGraph: React.FC<UsageGraphProps> = (props) => {
-    const today:Date = new Date();
-    const usageLogDataList:UsageLogData[] = filterUsageLogData(useUpdateUsageLogData(formatDate(today)), props.filterAmount);
-    const {setCurrentUsageData:handleSetCurrentUsageData, setOpenUsageDataDialog:handleSetOpenUsageDataDialog}:UsageDataContextType = useUsageData();
+    const {setCurrentUsageData:handleSetCurrentUsageData, setOpenUsageDataDialog:handleSetOpenUsageDataDialog}:WatchDogContextType = useWatchDog();
     return (
         <Box 
             sx={{ 
-                pt: 3, 
-                flex: 4,
+                pt: 6, 
+                flex: 3,
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -29,22 +26,23 @@ export const UsageGraph: React.FC<UsageGraphProps> = (props) => {
             <PieChart
                 series={[
                     {
-                        data: usageLogDataList.map((data) => ({id:data.logId, value:data.timeSpent, label:data.windowName})),
+                        data: props.usageLogDataList.map((data) => ({id:data.logId, value:data.timeSpent, label:data.windowName})),
                         valueFormatter: (value) => {
                             return formatTime(value.value);
                         },
-                        outerRadius: 200,
+                        outerRadius: 300,
+                        cx: 300,
                     }
                 ]}
-                onItemClick={(event, data) => {
-                    handleSetCurrentUsageData(usageLogDataList[data.dataIndex]);
+                onItemClick={(_, data) => {
+                    handleSetCurrentUsageData(props.usageLogDataList[data.dataIndex]);
                     handleSetOpenUsageDataDialog(true);
                 }}
                 slotProps={{
                     legend: { hidden: true },
                 }}
-                width={400}
-                height={400}
+                width={600}
+                height={600}
                 colors={props.colors}
             />
         </Box>
