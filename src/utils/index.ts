@@ -68,7 +68,10 @@ export const formatTime = (seconds: number): string => {
     }
 }
 
-export const filterUsageLogData = (usageLogDataList:UsageLogData[], amount:number):UsageLogData[] => {
+export const filterUsageLogData = (usageLogDataList:UsageLogData[], amount:number | null):UsageLogData[] => {
     const filteredList = [...usageLogDataList].sort((a, b) => b.timeSpent - a.timeSpent);
-    return filteredList.slice(0, amount);
+    if (amount !== null) {
+        return filteredList.slice(0, amount);
+    } 
+    return filteredList
 }

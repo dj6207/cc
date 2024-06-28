@@ -14,8 +14,9 @@ export const WatchDog: React.FC = () => {
         openUsageDataDialog:openUsageDataDialog, 
         setOpenUsageDataDialog:handleSetOpenUsageDataDialog
     }:WatchDogContextType = useWatchDog()
+    
     const today:Date = new Date();
-    const filterAmount:number = 20;
+    const filterAmount:number | null = 20;
     const usageLogDataList:UsageLogData[] = filterUsageLogData(
         useUpdateUsageLogData(
             formatDate(currentDate?.toDate() ?? today)
@@ -31,6 +32,7 @@ export const WatchDog: React.FC = () => {
         <Box
             sx={{
                 pt: 4,
+                pr:1,
                 display: 'flex',
                 flexDirection: 'row', 
                 justifyContent: 'space-between',

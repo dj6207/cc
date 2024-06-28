@@ -11,7 +11,9 @@ interface UsageGraphProps {
 }
 
 export const UsageGraph: React.FC<UsageGraphProps> = (props) => {
+
     const {setCurrentUsageData:handleSetCurrentUsageData, setOpenUsageDataDialog:handleSetOpenUsageDataDialog}:WatchDogContextType = useWatchDog();
+
     return (
         <Box 
             sx={{ 
@@ -30,8 +32,8 @@ export const UsageGraph: React.FC<UsageGraphProps> = (props) => {
                         valueFormatter: (value) => {
                             return formatTime(value.value);
                         },
-                        outerRadius: 300,
-                        cx: 300,
+                        outerRadius: '100%',
+                        cx: '60%',
                     }
                 ]}
                 onItemClick={(_, data) => {
