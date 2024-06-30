@@ -16,13 +16,18 @@ export const WatchDog: React.FC = () => {
     }:WatchDogContextType = useWatchDog()
     
     const today:Date = new Date();
-    const filterAmount:number | null = 20;
-    const usageLogDataList:UsageLogData[] = filterUsageLogData(
-        useUpdateUsageLogData(
-            formatDate(currentDate?.toDate() ?? today)
-        ), 
-        filterAmount
-    );
+    const limit:number = 20;
+    // const usageLogDataList:UsageLogData[] = filterUsageLogData(
+    //     useUpdateUsageLogData(
+    //         formatDate(currentDate?.toDate() ?? today),
+    //         filterAmount
+    //     ), 
+    //     filterAmount
+    // );
+    const usageLogDataList:UsageLogData[] = useUpdateUsageLogData(
+        formatDate(currentDate?.toDate() ?? today),
+        limit
+    )
     
     const handleCloseUsageDialog = () => {
         handleSetOpenUsageDataDialog(false);

@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { RustUsageLogData, UsageLogData } from "../types";
 import { invoke } from '@tauri-apps/api/tauri'
 
-export const useUpdateUsageLogData = (date:string):UsageLogData[] => {
+export const useUpdateUsageLogData = (date:string, limit:number):UsageLogData[] => {
     const [usageLogData, setUsageLogData] = useState<UsageLogData[]>([]);
     useEffect(() => {
         const getUsageLogData = () => {
-            invoke<RustUsageLogData[]>("plugin:sqlite_connector|get_usage_log_data", { date: date })
+            invoke<RustUsageLogData[]>("plugin:sqlite_connector|get_usage_log_data", { date: date, limit: limit })
                 .then((res) => {
                     const usageLogDataObject = res.map(obj => ({
                         logId: obj.log_id,

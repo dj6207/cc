@@ -149,7 +149,7 @@ pub async fn select_application_window_by_window_name(pool: &SqlitePool, window_
 // UsageLogs SQL Operations
 
 #[command]
-async fn get_usage_log_data(pool_state: State<'_, SqlitePoolConnection>, date: String) -> Result<Vec<UsageLogData>, SerializedError>{
+async fn get_usage_log_data(pool_state: State<'_, SqlitePoolConnection>, date: String, limit:i64) -> Result<Vec<UsageLogData>, SerializedError>{
     let pool = pool_state.connection.lock().unwrap().clone().unwrap();
     let query = sqlx::query(
         "
@@ -158,9 +158,12 @@ async fn get_usage_log_data(pool_state: State<'_, SqlitePoolConnection>, date: S
         INNER JOIN ApplicationWindows aw ON ul.WindowID = aw.WindowID
         INNER JOIN Applications a ON aw.ApplicationID = a.ApplicationID
         WHERE ul.Date = ?
+        ORDER BY ul.TimeSpent DESC
+		LIMIT ?
         "
     )
         .bind(date)
+        .bind(limit)
         .fetch_all(&pool)
         .await?;
     let usage_log_data: Vec<UsageLogData> = query.into_iter().map(|row| {

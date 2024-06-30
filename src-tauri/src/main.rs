@@ -4,7 +4,7 @@
 use std::sync::Mutex;
 
 use tauri::{
-  App, CustomMenuItem, Manager, State, SystemTray, SystemTrayMenu, SystemTrayMenuItem
+  App, AppHandle, CustomMenuItem, Manager, State, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem
 };
 
 use crate::{database::sqlite_connector::{create_user, initialize_sqlite_database, user_exists}, services::{user::get_user_name, windows::start_tracker}, types::structs::SqlitePoolConnection};
@@ -33,17 +33,28 @@ fn initialize_logging() -> Result<(), fern::InitError> {
 
 fn initialize_system_tray() -> SystemTray {
   let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-  let hide = CustomMenuItem::new("hide".to_string(), "Hide");
   let tray_menu = SystemTrayMenu::new()
-    .add_item(quit)
-    .add_native_item(SystemTrayMenuItem::Separator)
-    .add_item(hide);
+    .add_item(quit);
   let system_tray = SystemTray::new().with_menu(tray_menu);
   return system_tray;
 }
 
-fn start_app(app_handler: &mut App) {
-  let app_handle = app_handler.app_handle();
+fn system_tray_event_handler(_app_handler: &AppHandle, event: &SystemTrayEvent) {
+  match &event {
+    SystemTrayEvent::MenuItemClick {id, .. } => {
+      match id.as_str() {
+          "quit" => {
+            std::process::exit(0);
+          }
+          _ => {}
+      }
+    }
+    _ => {}
+  }
+}
+
+fn start_app(app: &mut App) {
+  let app_handle = app.app_handle();
   tauri::async_runtime::spawn(async move {
     match initialize_sqlite_database().await {
       Ok(pool) => {
@@ -89,8 +100,11 @@ fn main() {
     .plugin(services::user::init())
     .plugin(services::windows::init())
     .system_tray(system_tray)
-    .setup(|app_handler| {
-      start_app(app_handler);
+    .on_system_tray_event(|app_handler, event| {
+      system_tray_event_handler(app_handler, &event);
+    })
+    .setup(|app| {
+      start_app(app);
       Ok(())
     })
     .run(tauri::generate_context!())
