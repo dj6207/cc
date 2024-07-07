@@ -27,3 +27,44 @@ export const useUpdateUsageLogData = (date:string, limit:number):UsageLogData[] 
     }, [date]);
     return usageLogData;
 }
+
+export const useManageTracking = (loggingStatus:boolean) => {
+    useEffect(() => {
+        if (loggingStatus) {
+            invoke("plugin:windows|start_tracker")
+                .then((_) => {
+                    console.log("Tracking Started")
+                })
+                .catch((error) => {
+                    console.log(error)
+                });
+        } else {
+            invoke("plugin:windows|stop_tracker")
+            .then((_) => {
+                console.log("Tracking Paused")
+            })
+            .catch((error) => {
+                console.log(error)
+            });
+        }
+    }, [loggingStatus]);
+}
+
+export const useGetTotalTimeTracked = (date:string):number => {
+    const [totalTimeTracked, setTotalTimeTracked] = useState<number>(0);
+    useEffect(() => {
+        const getTotalTime = () => {
+            invoke<number>("plugin:sqlite_connector|get_total_time_tracked", { date: date })
+                .then((res) => {
+                    setTotalTimeTracked(res);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+        getTotalTime();
+        const interval = setInterval(getTotalTime, 1000);
+        return () => clearInterval(interval);
+    }, [date]);
+    return totalTimeTracked;
+}

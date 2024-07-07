@@ -1,13 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use tauri::{
   App, AppHandle, CustomMenuItem, Manager, State, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem
 };
+use types::structs::TrackingStatus;
 
-use crate::{database::sqlite_connector::{create_user, initialize_sqlite_database, user_exists}, services::{user::get_user_name, windows::start_tracker}, types::structs::SqlitePoolConnection};
+use crate::{database::sqlite_connector::{create_user, initialize_sqlite_database, user_exists}, services::user::get_user_name, types::structs::SqlitePoolConnection};
 
 mod database;
 mod services;
@@ -61,24 +62,24 @@ fn start_app(app: &mut App) {
         log::info!("Database initalized");
         let pool_state: State<'_,SqlitePoolConnection> = app_handle.state();
         *pool_state.connection.lock().unwrap() = Some(pool.clone()); 
-        unsafe {
-          match get_user_name() {
-            Ok(user_name) => {
-              match user_exists(&pool, &user_name).await {
-                Ok(user_exist) => {
-                  if !user_exist {
-                    if let Err(err) = create_user(&pool, &user_name).await {
-                      log::error!("{}", err)
-                    }
-                  }
-                  start_tracker(pool.clone(), user_name).await;
-                }
-                Err(err) => {log::error!("{}", err)}
-              }
-            }
-            Err(err) => {log::error!("{}", err)}
-          }
-        }
+        // unsafe {
+        //   match get_user_name() {
+        //     Ok(user_name) => {
+        //       match user_exists(&pool, &user_name).await {
+        //         Ok(user_exist) => {
+        //           if !user_exist {
+        //             if let Err(err) = create_user(&pool, &user_name).await {
+        //               log::error!("{}", err)
+        //             }
+        //           }
+        //           start_tracker(pool.clone(), user_name).await;
+        //         }
+        //         Err(err) => {log::error!("{}", err)}
+        //       }
+        //     }
+        //     Err(err) => {log::error!("{}", err)}
+        //   }
+        // }
       }
       Err(err) => {
         log::error!("Error Initializing Database: {}", err);
@@ -96,6 +97,7 @@ fn main() {
   let system_tray = initialize_system_tray();
   tauri::Builder::default()
     .manage(SqlitePoolConnection{connection: Mutex::new(None)})
+    .manage(TrackingStatus::new())
     .plugin(database::sqlite_connector::init())
     .plugin(services::user::init())
     .plugin(services::windows::init())

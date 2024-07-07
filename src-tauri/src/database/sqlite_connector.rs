@@ -178,6 +178,23 @@ async fn get_usage_log_data(pool_state: State<'_, SqlitePoolConnection>, date: S
     return Ok(usage_log_data)
 }
 
+#[command]
+async fn get_total_time_tracked(pool_state: State<'_, SqlitePoolConnection>, date: String) -> Result<i64, SerializedError> {
+    let pool = pool_state.connection.lock().unwrap().clone().unwrap();
+    let query = sqlx::query(
+        "
+        SELECT SUM(TimeSpent) AS TotalTimeSpent
+        FROM UsageLogs
+        WHERE Date = ?
+        "
+    )
+        .bind(date)
+        .fetch_one(&pool)
+        .await?
+        .try_get::<i64, _>("TotalTimeSpent")?;
+    return Ok(query)
+}
+
 pub async fn create_usage_logs(pool: &SqlitePool, user_id: i64, window_id: i64) -> Result<i64, SqlxError> {
     let query = sqlx::query(
         "
@@ -274,7 +291,8 @@ pub async fn initialize_sqlite_database() -> Result<Pool<Sqlite>, SerializedErro
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("sqlite_connector")
         .invoke_handler(tauri::generate_handler![
-            get_usage_log_data
+            get_usage_log_data,
+            get_total_time_tracked
         ])
         .build()
 }

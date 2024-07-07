@@ -1,9 +1,28 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use serde::Serialize;
 use sqlx::{Pool, Sqlite, FromRow};
 
 pub struct SqlitePoolConnection {
     pub connection: Mutex<Option<Pool<Sqlite>>>
+}
+
+pub struct TrackingStatus {
+    pub status: Arc<Mutex<bool>>
+}
+
+impl TrackingStatus {
+    pub fn new() -> Self {
+        Self {
+            status: Arc::new(Mutex::new(false)),
+        }
+    }
+    pub fn get_status(&self) -> bool {
+        *self.status.lock().unwrap()
+    }
+    pub fn set_status(&self, value: bool) {
+        let mut status = self.status.lock().unwrap();
+        *status = value;
+    }
 }
 
 #[derive(Debug, Serialize)]

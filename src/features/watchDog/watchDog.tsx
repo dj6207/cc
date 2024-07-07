@@ -1,38 +1,48 @@
 import React from "react";
 import { CalendarButton, UsageGraph } from ".";
 import { hexColors, formatTime, filterUsageLogData, formatDate } from "../../utils";
-import { Box, Dialog, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import { Box, Dialog, DialogContent, DialogContentText, DialogTitle, Switch, Typography } from "@mui/material";
 import { UsageList } from "./usageList";
 import { WatchDogContextType, useWatchDog } from "../../context/watchDogContext";
 import { UsageLogData } from "../../types";
-import { useUpdateUsageLogData } from "../../hooks";
+import { useGetTotalTimeTracked, useManageTracking, useUpdateUsageLogData } from "../../hooks";
 
 export const WatchDog: React.FC = () => {
+    
     const {
         currentUsageData:currentUsageData, 
         currentDate:currentDate,
         openUsageDataDialog:openUsageDataDialog, 
-        setOpenUsageDataDialog:handleSetOpenUsageDataDialog
+        setOpenUsageDataDialog:handleSetOpenUsageDataDialog,
+        loggingStatus:loggingStatus,
+        setLoggingStatus:handleSetLoggingStatus,
     }:WatchDogContextType = useWatchDog()
     
     const today:Date = new Date();
     const limit:number = 20;
-    // const usageLogDataList:UsageLogData[] = filterUsageLogData(
-    //     useUpdateUsageLogData(
-    //         formatDate(currentDate?.toDate() ?? today),
-    //         filterAmount
-    //     ), 
-    //     filterAmount
-    // );
+
     const usageLogDataList:UsageLogData[] = useUpdateUsageLogData(
         formatDate(currentDate?.toDate() ?? today),
         limit
+    )
+
+    // TODO: Implement total time tracked
+
+    const totalTimeTracked = useGetTotalTimeTracked(
+        formatDate(currentDate?.toDate() ?? today)
     )
     
     const handleCloseUsageDialog = () => {
         handleSetOpenUsageDataDialog(false);
     }
 
+    const handleTracking = (event: React.ChangeEvent<HTMLInputElement>) => {
+        handleSetLoggingStatus(event.target.checked);
+    }
+
+    useManageTracking(loggingStatus);
+
+    // Fix switch component
     return (
         <Box
             sx={{
@@ -46,6 +56,15 @@ export const WatchDog: React.FC = () => {
         >
             <UsageGraph colors={hexColors} usageLogDataList={usageLogDataList}/>
             <Box sx={{ pt: 6, flex: 1 }}>
+                <Box sx={{display: 'flex', justifyContent: 'space-between', width: '100%'}}>
+                    <Typography variant="h6">
+                        Time Elapsed: {formatTime(totalTimeTracked)}
+                    </Typography>
+                    <Switch
+                        checked={loggingStatus}
+                        onChange={handleTracking}
+                    />
+                </Box>
                 <CalendarButton date={currentDate}/>
                 <UsageList colors={hexColors} usageLogDataList={usageLogDataList}/>
             </Box>

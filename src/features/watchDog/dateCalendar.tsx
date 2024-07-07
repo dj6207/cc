@@ -20,8 +20,8 @@ export const DateCalendar:React.FC<DateCalendarProps> = (props) => {
                     label="Date"
                     slotProps={{
                         textField: {
-                            helperText: 'MM/DD/YYYY',
                             fullWidth: true,
+                            disabled: true,
                         },
                     }}
                     defaultValue={props.date}

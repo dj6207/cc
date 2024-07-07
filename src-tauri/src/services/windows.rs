@@ -1,14 +1,23 @@
 use std::time::Duration;
 use sqlx::SqlitePool;
 use tokio::time::interval;
-use crate::{database::sqlite_connector::{application_exists, application_window_exists, create_application, create_application_window, create_usage_logs, select_application_by_executable_name, select_application_window_by_window_name, select_usage_log_by_window_id, select_user_by_name, update_usage_logs_time, usage_logs_exists}, types::{constants::MONITOR_INTERVAL, enums::SerializedError}};
+use crate::{
+    database::sqlite_connector::{
+        application_exists, application_window_exists, create_application, create_application_window, create_usage_logs, create_user, select_application_by_executable_name, select_application_window_by_window_name, select_usage_log_by_window_id, select_user_by_name, update_usage_logs_time, usage_logs_exists, user_exists
+    }, get_user_name, types::{
+        constants::MONITOR_INTERVAL, 
+        enums::SerializedError, structs::{SqlitePoolConnection, TrackingStatus}
+    }
+};
 
 use tauri::{
+    command,
     plugin::{
         Builder, 
         TauriPlugin
     },
     Runtime,
+    State
 };
 
 use windows::{
@@ -91,26 +100,57 @@ async fn manage_usage_logs(pool: &SqlitePool, user_name: &str, window_id: Option
     return Ok(());
 }
 
-pub async fn start_tracker(pool: SqlitePool, user_name: String) {
-    let mut interval = interval(Duration::from_secs(MONITOR_INTERVAL));
-    loop {
-        interval.tick().await;
-        let mut application_id:Option<i64> = None;
-        let mut window_id:Option<i64> = None;
+#[command]
+async fn stop_tracker(tracking_status_state: State<'_, TrackingStatus>) -> Result<(), SerializedError> {
+    tracking_status_state.set_status(false);
+    return Ok(())
+}
+
+#[command]
+async fn start_tracker(pool_state: State<'_, SqlitePoolConnection>, tracking_status_state: State<'_, TrackingStatus>) -> Result<(), SerializedError> {
+    let pool = pool_state.connection.lock().unwrap().clone().unwrap();
+    if !tracking_status_state.get_status() {
+        tracking_status_state.set_status(true);
         unsafe {
-            if let Err(err) = track_windows(&pool, &mut application_id, &mut window_id).await {
-                 log::error!("{}", err);
+            match get_user_name() {
+                Ok(user_name) => {
+                    match user_exists(&pool, &user_name).await {
+                        Ok(user_exist) => {
+                        if !user_exist {
+                            if let Err(err) = create_user(&pool, &user_name).await {
+                                log::error!("{}", err)
+                            }
+                        }
+                        let mut interval = interval(Duration::from_secs(MONITOR_INTERVAL));
+                        while tracking_status_state.get_status() {
+                            interval.tick().await;
+                            let mut application_id:Option<i64> = None;
+                            let mut window_id:Option<i64> = None;
+                                if let Err(err) = track_windows(&pool, &mut application_id, &mut window_id).await {
+                                     log::error!("{}", err);
+                                }
+                            log::info!("App ID: {}", application_id.unwrap_or(0));
+                            log::info!("Window ID: {}", window_id.unwrap_or(0));
+                            if let Err(err) = manage_usage_logs(&pool, &user_name, window_id).await {
+                                log::error!("{}", err);
+                            };
+                        }
+                        }
+                        Err(err) => {log::error!("{}", err)}
+                    }
+                }
+                Err(err) => {log::error!("{}", err)}
             }
         }
-        log::info!("{}", application_id.unwrap_or(0));
-        log::info!("{}", window_id.unwrap_or(0));
-        if let Err(err) = manage_usage_logs(&pool, &user_name, window_id).await {
-            log::error!("{}", err);
-        };
     }
+    return Ok(())  
 }
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("windows")
+        .invoke_handler(tauri::generate_handler![
+            start_tracker,
+            stop_tracker
+        ])
         .build()
 }
