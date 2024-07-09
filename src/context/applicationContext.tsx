@@ -1,6 +1,5 @@
 import React, { ReactNode, createContext, useContext, useState } from "react";
 import { CommandCenterApplicationEnum } from "../enums";
-import { Dayjs } from "dayjs";
 
 type ApplicationProviderProps = {
     children: ReactNode;

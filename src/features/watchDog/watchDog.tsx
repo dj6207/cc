@@ -1,6 +1,6 @@
 import React from "react";
 import { CalendarButton, UsageGraph } from ".";
-import { hexColors, formatTime, filterUsageLogData, formatDate } from "../../utils";
+import { hexColors, formatTime, formatDate } from "../../utils";
 import { Box, Dialog, DialogContent, DialogContentText, DialogTitle, Switch, Typography } from "@mui/material";
 import { UsageList } from "./usageList";
 import { WatchDogContextType, useWatchDog } from "../../context/watchDogContext";
@@ -26,8 +26,6 @@ export const WatchDog: React.FC = () => {
         limit
     )
 
-    // TODO: Implement total time tracked
-
     const totalTimeTracked = useGetTotalTimeTracked(
         formatDate(currentDate?.toDate() ?? today)
     )
@@ -42,7 +40,6 @@ export const WatchDog: React.FC = () => {
 
     useManageTracking(loggingStatus);
 
-    // Fix switch component
     return (
         <Box
             sx={{

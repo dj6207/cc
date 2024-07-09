@@ -1,14 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 use tauri::{
-  App, AppHandle, CustomMenuItem, Manager, State, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem
+  App, AppHandle, CustomMenuItem, Manager, State, SystemTray, SystemTrayEvent, SystemTrayMenu
 };
 use types::structs::TrackingStatus;
 
-use crate::{database::sqlite_connector::{create_user, initialize_sqlite_database, user_exists}, services::user::get_user_name, types::structs::SqlitePoolConnection};
+use crate::{database::sqlite_connector::initialize_sqlite_database, services::user::get_user_name, types::structs::SqlitePoolConnection};
 
 mod database;
 mod services;
@@ -62,24 +62,6 @@ fn start_app(app: &mut App) {
         log::info!("Database initalized");
         let pool_state: State<'_,SqlitePoolConnection> = app_handle.state();
         *pool_state.connection.lock().unwrap() = Some(pool.clone()); 
-        // unsafe {
-        //   match get_user_name() {
-        //     Ok(user_name) => {
-        //       match user_exists(&pool, &user_name).await {
-        //         Ok(user_exist) => {
-        //           if !user_exist {
-        //             if let Err(err) = create_user(&pool, &user_name).await {
-        //               log::error!("{}", err)
-        //             }
-        //           }
-        //           start_tracker(pool.clone(), user_name).await;
-        //         }
-        //         Err(err) => {log::error!("{}", err)}
-        //       }
-        //     }
-        //     Err(err) => {log::error!("{}", err)}
-        //   }
-        // }
       }
       Err(err) => {
         log::error!("Error Initializing Database: {}", err);

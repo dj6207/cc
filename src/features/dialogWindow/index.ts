@@ -1,1 +1,0 @@
-export { DialogWindow } from './dialogWindow';

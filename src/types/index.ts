@@ -1,6 +1,9 @@
+import { CommandCenterApplicationEnum } from "../enums";
+
 export type AppBarItem = {
     id: number;
-    name: string;
+    application: CommandCenterApplicationEnum;
+    route: string;
 }
 
 export type RustUsageLogData = {
@@ -17,9 +20,4 @@ export type UsageLogData = {
     executableName: string;
     timeSpent: number;
     date: string;
-}
-
-export type CommandCenterApplication = {
-    id: number;
-    name: string;
 }

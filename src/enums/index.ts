@@ -1,3 +1,4 @@
 export enum CommandCenterApplicationEnum {
-    WatchDog = "WATCHDOG"
+    WatchDog = "WATCHDOG",
+    WatchDogNet = "WATCHDOGNET"
 }
